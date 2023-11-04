@@ -1,0 +1,90 @@
+<head>
+    <style>
+        html{
+        font-family: 'Poppins', sans-serif;
+        }
+         #flashcard {
+            width: 300px;
+            height: 200px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        p {
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+            max-height: 120px; /* Set a maximum height for the text */
+            overflow-y: auto;  /* Add a vertical scrollbar when needed */
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="flashcard">
+        <!-- <h1 id="flashcard-title">Question</h1> -->
+        <p id="flashcard-text"></p>
+    </div>
+    <button id="prev-button" onclick="showPrevCard()">Previous</button>
+    <button id="next-button" onclick="showNextCard()">Next</button>
+  </body>
+
+  <script>
+    console.log(data);
+    
+     const flashcards = data;
+        let currentCardIndex = 0;
+        let showingAnswer = false;
+
+        function updateCard() {
+            const [question, answer] = flashcards[currentCardIndex];
+            // document.getElementById("flashcard-title").textContent = showingAnswer ? "Answer" : "Question";
+            document.getElementById("flashcard-text").textContent = showingAnswer ? answer : question;
+        }
+
+        function showNextCard() {
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            showingAnswer = false;
+            updateCard();
+        }
+
+        function showPrevCard() {
+            currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+            showingAnswer = false;
+            updateCard();
+        }
+
+        function toggleAnswer() {
+            showingAnswer = !showingAnswer;
+            updateCard();
+        }
+
+        document.getElementById("flashcard").addEventListener("click", toggleAnswer);
+
+        updateCard();
+  </script>
+

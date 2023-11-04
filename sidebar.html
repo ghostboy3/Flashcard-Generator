@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- <base target="_top"> -->
+  <style>
+    html{
+      font-family: 'Poppins', sans-serif;
+    }
+    .card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .hidden-button {
+      display: none;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Flashcard Generator</h1>
+    <label for="numberInput">Number of Flashcards</label>
+    <input type="number" id="numberInput" name="numberInput" min="1" max="30" step="1" value="10" required>
+    <br/>
+    <button onclick="main()">Generate Flashcards</button>
+    <div id="loading"></div>
+    <div id="flashcards"></div>
+    <button id="openModalButton" class="hidden-button">Study Mode</button>
+  </div>
+</body>
+<script>
+  let studyButton = document.getElementById("openModalButton");
+  let cards=[]
+  function main() {
+      studyButton.classList.add("hidden-button");
+      document.getElementById('loading').innerText = "loading...";
+      let numCards = document.getElementById("numberInput").value;
+        google.script.run.withSuccessHandler(function(count) {
+          generateText("Create" + numCards + " simple study flashcards with question on front and answer on back for the following notes:" + count + "       \n put the front of the card on one line then the back on another (without any additoinal text), evertime there's a new card create an additoinal line between them")
+        .then(result => {
+        console.log(result)
+        document.getElementById('loading').innerText = "";
+        cards = parseFlashcards(result);
+        console.log(parseFlashcards(result));
+        createCards(parseFlashcards(result));
+        studyButton.classList.remove("hidden-button");
+      })
+      .catch(error => {
+        console.error(error);
+        });
+
+        }).getFlashcards();
+  
+        }
+        
+  const apiUrl = 'https://api.openai.com/v1/completions';
+
+  // Create a function to send a request to the GPT-3.5 API.
+  async function generateText(prompt) {
+  const requestBody = {
+    prompt: prompt,
+    model: 'text-davinci-003',
+    max_tokens: 2000, // Adjust the number of tokens as needed.
+  };
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data.choices[0].text;
+  } else {
+    throw new Error(`Failed to generate text: ${response.statusText}`);
+  }
+}
+
+  function parseFlashcards(inputString) {
+    const flashcards = inputString.trim().split('\n');
+    const result = [];
+    for (i = 0; i < flashcards.length; i++){
+      if (flashcards[i][0] == "Q"){
+            let question = flashcards[i]
+            let answer = flashcards[i+1]
+            result.push([question, answer])
+      }
+    }
+    return result;
+  }
+  function createCards(flashcardArray){
+      const flashcardsContainer = document.getElementById('flashcards');
+      flashcardsContainer.innerHTML = "";
+      flashcardArray.forEach((flashcard, index) => {
+        const question = flashcard[0];
+        const answer = flashcard[1];
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerText = question;
+        
+        let isQuestion = true;
+
+        card.addEventListener('click', () => {
+          if (isQuestion) {
+            card.innerText = answer;
+          } else {
+            card.innerText = question;
+          }
+          isQuestion = !isQuestion;
+          card.classList.toggle('answered');
+        });
+
+        flashcardsContainer.appendChild(card);
+      });
+  }
+
+  document.getElementById("openModalButton").addEventListener("click", openModal);
+
+      function openModal() {
+        google.script.run.openModal(cards);
+        // google.script.run.openModal([["q1", "a1"], ["q2", "a2"], ["q3", "a3"]]);
+      }
+</script>
+
+</html>
